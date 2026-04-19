@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Truck, Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { UserRole } from '@/types'
 
 const schema = z.object({
   first_name: z.string().min(2, 'Requis'),
@@ -26,15 +25,22 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState('')
-  const [role, setRole] = useState<UserRole>('SHIPPER')
+  const initialRole = (searchParams.get('role') === 'CARRIER' ? 'CARRIER' : 'SHIPPER') as 'SHIPPER' | 'CARRIER'
+  const [role, setRole] = useState<'SHIPPER' | 'CARRIER'>(initialRole)
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { role: 'SHIPPER' },
+    resolver: zodResolver(schema) as any,
+    defaultValues: { role: initialRole },
   })
+
+  useEffect(() => {
+    setValue('role', initialRole)
+    setRole(initialRole)
+  }, [initialRole, setValue])
 
   function selectRole(r: 'SHIPPER' | 'CARRIER') {
     setRole(r)
@@ -59,7 +65,7 @@ export default function RegisterPage() {
       setError(error.message)
       return
     }
-    router.push('/onboarding')
+    router.push(data.role === 'CARRIER' ? '/carrier' : '/shipper')
   }
 
   return (
@@ -122,5 +128,13 @@ export default function RegisterPage() {
         <Link href="/privacy" className="underline">politique de confidentialité</Link>.
       </p>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md animate-pulse" />}>
+      <RegisterForm />
+    </Suspense>
   )
 }
