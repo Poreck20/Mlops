@@ -124,7 +124,7 @@ export default function ProfilePage() {
             <p className="font-medium text-gray-900">Tableau de bord</p>
             <p className="text-sm text-gray-500">Gérer vos {user.role === 'CARRIER' ? 'offres et réservations' : 'demandes et réservations'}</p>
           </div>
-          <Button variant="outline" onClick={() => router.push(dashboardPath)}>
+          <Button variant="secondary" onClick={() => router.push(dashboardPath)}>
             Accéder →
           </Button>
         </CardBody>
